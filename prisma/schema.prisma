@@ -23,3 +23,24 @@ model User {
     phone String
     image String?
 }
+
+model Post {
+    id String @id @default(cuid())
+    userId String
+    postContent String
+    createdAt DateTime @default(now())
+}
+
+model PostLikes {
+    id String @id @default(cuid())
+    userId String
+    postId String
+}
+
+model PostComments {
+    id String @id @default(cuid())
+    userId String
+    postId String
+    commentContent String
+    createdAt DateTime @default(now())
+}
