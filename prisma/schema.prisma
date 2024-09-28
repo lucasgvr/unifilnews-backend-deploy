@@ -44,3 +44,9 @@ model PostComments {
     commentContent String
     createdAt DateTime @default(now())
 }
+
+model VisitorCount {
+  id         String      @id @default(cuid())
+  visitDate  DateTime @default(now())
+  count      Int      @default(1)
+}
