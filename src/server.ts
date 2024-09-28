@@ -429,6 +429,55 @@ app.get("/posts/comments/:id", async (request, reply) => {
     return { comment }
 })
 
+app.get('/visitor/count', async (request, reply) => {
+    try {
+      const totalVisitorCount = await prisma.visitorCount.aggregate({
+        _sum: {
+          count: true,
+        },
+      });
+  
+      // If no visits exist, set total count to 0
+      const count = totalVisitorCount._sum.count || 0;
+      reply.send({ totalCount: count });
+    } catch (error) {
+      console.error(error);
+      reply.status(500).send({ message: 'An error occurred while retrieving the total visitor count' });
+    }
+  });
+
+app.post('/visitor/count/increment', async (request, reply) => {
+    try {
+      const currentDate = new Date(); // Get current date
+      const existingCount = await prisma.visitorCount.findFirst({
+        where: {
+          visitDate: {
+            gte: new Date(currentDate.setHours(0, 0, 0, 0)), // Start of the day
+            lt: new Date(currentDate.setHours(23, 59, 59, 999)), // End of the day
+          },
+        },
+      });
+  
+      if (existingCount) {
+        // If a record for today exists, increment the count
+        await prisma.visitorCount.update({
+          where: { id: existingCount.id },
+          data: { count: { increment: 1 } },
+        });
+      } else {
+        // Otherwise, create a new record for today
+        await prisma.visitorCount.create({
+          data: { visitDate: new Date(), count: 1 },
+        });
+      }
+  
+      reply.send({ message: 'Visitor count incremented successfully!' });
+    } catch (error) {
+      console.error(error);
+      reply.status(500).send({ message: 'An error occurred' });
+    }
+  });
+
 app.listen({
     host: '0.0.0.0',
     port: process.env.PORT ? Number(process.env.PORT) : 3333
